@@ -29,6 +29,9 @@ $ob->write_settings || die "no settings";
 $| = 1;
 
 debug("Opening serial port ttyO4 to modem");
+
+echo();
+sleep(1);
 checkModem();
 
 
@@ -66,4 +69,14 @@ while ($i < 6)
 
 READY:{debug("Iridium 9602 identyfied and ready to work....");}
 }
+
+
+sub echo        
+        {
+                 $ob->write("ATEn0\r");
+                 debug("Turning echo off");
+                 sleep(1);
+                  $rx = $ob->read(255);
+                  print "Echo off results: $rx\n";
+        }
 
