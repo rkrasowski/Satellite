@@ -42,7 +42,7 @@ sleep(1);
 checkModem();
 checkBuffer();
 checkRI();
-
+signalNetwork();
 
 
 
@@ -95,7 +95,7 @@ sub checkBuffer
                                 $MTMSN = $array2[3]; # Terminal originated message sequence number
 
                         }
-		print "MO: $MO\nMOMSN: $MOMSN\nMT: $MT\nMTMSN: $MTMSN\n\n";
+		print "MO: $MO\nMOMSN: $MOMSN\nMT: $MT\nMTMSN: $MTMSN\n";
         }
 
 
@@ -125,9 +125,58 @@ sub checkRI
                                  				$RI = $array2[4]; # Ring indicator
                                  				$numOfMessages = $array2[5]; # Number of messages witing
                                  				$numOfMessages =~ s/\r|\n|OK//g;
-                                 				debug("MO: $MO\nMOMSN: $MOMSN\nMT: $MT\nMTMSN: $MTMSN\nRI: $RI\nNum of messages waiting: $numOfMessages\n\n");
+                                 				debug("MO: $MO\nMOMSN: $MOMSN\nMT: $MT\nMTMSN: $MTMSN\nRI: $RI\nNum of messages waiting: $numOfMessages");
 							}	
 					}	
 				return $RI;
 			}
 	}
+
+
+sub signalNetwork{
+
+
+                $ob->write("AT+CIER=1,1,1,0\r");
+                debug("Checking network and signal strenght\n");
+                do
+                        {
+                                sleep(1);
+                                $rx = $ob->read(255);
+                                if ($rx)
+                                        {
+                                                if ($rx =~ m/CIEV:1/)
+                                                        {
+                                                              
+                                                                my @array = split(':',$rx);
+                                                                my $array;
+                                                                @array = split(',',$array[1]);
+                                                                $network = substr($array[1], 0, 1);
+                                                                if ($network == 1)
+                                                                        {
+                                                                                debug("\nNetwork available");
+                                                                        }
+                                                        }
+
+
+
+                                                if ($rx =~ m/CIEV:0/)
+                                                       {
+
+                                                                my @array2 = split(':',$rx);
+                                                         my $array2;
+                                                                    #print $array[1];
+                                                                @array2 = split(',',$array2[1]);
+                                                                $sigStrenght = substr( $array2[1],0,1);
+                                                                debug("Sig streght = $sigStrenght");
+
+                                                        }
+                                        }
+
+                        }
+                                until ($sigStrenght >2);
+                                debug("Ready to communicate");
+
+}
+
+
+
